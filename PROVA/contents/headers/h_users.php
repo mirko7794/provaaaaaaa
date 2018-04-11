@@ -22,9 +22,14 @@ switch ($_GET['action']) {
 	
 		if (!is_numeric($_GET['id']))
 			redirect('users');
+		$id=$_GET['id'];
+		$stmt=$db->prepare('SELECT * FROM users WHERE id=?');
+		$stmt->bind_param('s', $id);
+
+		$stmt->execute();
+
 	
-		$result = mysqli_query($db,"SELECT * FROM users WHERE id = ".$_GET['id']."");
-		//print_r($result); 
+		$result = $stmt->get_result();
 
 		if (mysqli_num_rows($result) > 0) {
 		// output data of each row
@@ -41,7 +46,15 @@ switch ($_GET['action']) {
 	case 'delete':
 		if (!is_numeric($_GET['id']))
 			redirect('users');
-		$result = mysqli_query($db,"DELETE FROM users WHERE id=".$_GET['id']."");
+
+		$id=$_GET['id'];
+		$stmt=$db->prepare('SELECT * FROM users WHERE id=?');
+		$stmt->bind_param('s', $id);
+
+		$stmt->execute();
+
+	
+		$result = $stmt->get_result();
 		redirect('users');
 		break;
 
