@@ -4,31 +4,43 @@ if (!isset($_GET['action'])) {
 }
 switch ($_GET['action']) {
 	case 'save': 
+	$username=$_POST['username'];
+	$password=$_POST['password'];
+	$name=$_POST['name'];
+	$surname=$_POST['surname'];
+	$email=$_POST['email'];
+	$id=$_GET['id'];
+
 		if ($_POST['redirect'] == 'edit' && $_POST['password'] != $_POST['confirmpassword']) {
 			redirect("users&action=edit&id=".$_GET['id']."&err");
 		}
 		if (isset($_GET['id']) && $_GET['id'] > 0) {
-			$query = "UPDATE users  SET username='".$_POST['username']."', password='".$_POST['password']."', name='".$_POST['name']."', surname='".$_POST['surname']."', email='".$_POST['email']."' WHERE id = ".$_GET['id']; 
+		$stmt=$db->prepare("UPDATE users  SET username=?, password=?, name=?, surname=?, email=? WHERE id =?");
+		$stmt->bind_param("sssssi", $username,$password,$name,$surname,$email,$id);
+		$stmt->execute();
+
+			//$query = "UPDATE users  SET username='".$_POST['username']."', password='".$_POST['password']."', name='".$_POST['name']."', surname='".$_POST['surname']."', email='".$_POST['email']."' WHERE id = ".$_GET['id']; 
 		} else {
-			$query = "INSERT INTO users (username, password, name, surname, email) VALUES ('".$_POST['username']."', '".$_POST['password']."', '".$_POST['name']."', '".$_POST['surname']."', '".$_POST['email']."')";
+			$stmt=$db->prepare("INSERT INTO users (username, password, name, surname, email) VALUES (?, ?, ?, ?,?)");
+			$stmt->bind_param("sssss", $username,$password,$name,$surname,$email);
+			$stmt->execute();
 		}
-		$result = mysqli_query($db, $query);
-		//print $query;
-		//print "".mysqli_error($db); die;
+		$result = $stmt->get_result();
+		// "".mysqli_error($db); die;
 		redirect('users');
 		break;
 	
 	case 'edit':
 	
 		if (!is_numeric($_GET['id']))
-			redirect('users');
+		redirect('users');
+		
 		$id=$_GET['id'];
 		$stmt=$db->prepare('SELECT * FROM users WHERE id=?');
-		$stmt->bind_param('s', $id);
+		$stmt->bind_param('i', $id);
 
 		$stmt->execute();
 
-	
 		$result = $stmt->get_result();
 
 		if (mysqli_num_rows($result) > 0) {
@@ -48,8 +60,8 @@ switch ($_GET['action']) {
 			redirect('users');
 
 		$id=$_GET['id'];
-		$stmt=$db->prepare('SELECT * FROM users WHERE id=?');
-		$stmt->bind_param('s', $id);
+		$stmt=$db->prepare('DELETE FROM users WHERE id=?');
+		$stmt->bind_param('i', $id);
 
 		$stmt->execute();
 
@@ -59,8 +71,11 @@ switch ($_GET['action']) {
 		break;
 
 	default:
-		$result = mysqli_query($db,"SELECT * FROM users");
-		//print_r($result); 
+		$stmt=$db->prepare('SELECT * FROM users');
+
+		$stmt->execute();
+
+		$result = $stmt->get_result();
 
 		if (mysqli_num_rows($result) > 0) {
 		// output data of each row
