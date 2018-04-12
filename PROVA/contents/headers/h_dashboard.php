@@ -4,8 +4,6 @@ if (!isset($_GET['action'])) {
 }
 switch ($_GET['action']) {
 	case 'search':
-	$stmt=$db->prepare("SELECT * FROM sensori WHERE id='".$_POST['q']."' OR marca='".$_POST['q']."' OR tipo='".$_POST['q']."' OR etichetta='".$_POST['q']."'"
-
 		$result = mysqli_query($db, "SELECT * FROM sensori WHERE id='".$_POST['q']."' OR marca='".$_POST['q']."' OR tipo='".$_POST['q']."' OR etichetta='".$_POST['q']."'");
 		//print "".mysqli_error($db); die;
 		//print_r($result); 

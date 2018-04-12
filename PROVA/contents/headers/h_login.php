@@ -2,9 +2,13 @@
 //print_r($_POST);
 
 if (isset($_POST['username'])) {
-
-	$result = mysqli_query($db,"SELECT * FROM users WHERE username='".$_POST['username']."' AND password='".$_POST['password']."'");
-	//print_r($result); 
+	$username=$_POST['username'];
+	$password=$_POST['password'];
+	$stmt=$db->prepare("SELECT * FROM users WHERE username=? AND password=?"); 
+	$stmt->bind_param("ss", $username, $password);
+	$stmt->execute();
+	$result = $stmt->get_result();
+	//$result = mysqli_query($db,"SELECT * FROM users WHERE username='".$_POST['username']."' AND password='".$_POST['password']."'");
 
 	if (mysqli_num_rows($result) > 0) {
     // output data of each row
@@ -14,12 +18,6 @@ if (isset($_POST['username'])) {
 	} else {
 		redirect('login&err');
 	}
-//die;
-	
-
-
-		
-		
 		$row = $rs[0];
 		$_SESSION['user']['id'] = $row['id'];
 		$_SESSION['user']['email'] = $row['email'];
@@ -31,7 +29,7 @@ if (isset($_POST['username'])) {
 		} else {
 			$_SESSION['user']['priority'] = 2;
 		}
-		//print_r($_SESSION); die;
+
 		redirect("dashboard"); 
 	
 	
