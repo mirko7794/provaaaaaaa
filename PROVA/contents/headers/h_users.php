@@ -18,15 +18,13 @@ switch ($_GET['action']) {
 		$stmt=$db->prepare("UPDATE users  SET username=?, password=?, name=?, surname=?, email=? WHERE id =?");
 		$stmt->bind_param("sssssi", $username,$password,$name,$surname,$email,$id);
 		$stmt->execute();
-
-			//$query = "UPDATE users  SET username='".$_POST['username']."', password='".$_POST['password']."', name='".$_POST['name']."', surname='".$_POST['surname']."', email='".$_POST['email']."' WHERE id = ".$_GET['id']; 
+		
 		} else {
 			$stmt=$db->prepare("INSERT INTO users (username, password, name, surname, email) VALUES (?, ?, ?, ?,?)");
 			$stmt->bind_param("sssss", $username,$password,$name,$surname,$email);
 			$stmt->execute();
 		}
 		$result = $stmt->get_result();
-		// "".mysqli_error($db); die;
 		redirect('users');
 		break;
 	

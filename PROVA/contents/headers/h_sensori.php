@@ -4,15 +4,23 @@ if (!isset($_GET['action'])) {
 }
 switch ($_GET['action']) {
 	case 'save': 
+	$etichetta=$_POST['etichetta'];
+	$marca=$_POST['marca'];
+	$tipo=$_POST['tipo'];
+	$informazioni=$_POST['informazioni'];
+	$id=$_GET['id'];
 	
 		if (isset($_GET['id']) && $_GET['id'] > 0) {
-			$query = "UPDATE sensori SET etichetta='".$_POST['etichetta']."', marca='".$_POST['marca']."', tipo='".$_POST['tipo']."', informazioni='".$_POST['informazioni']."' WHERE id = ".$_GET['id']; 
+			$stmt=$db->prepare("UPDATE sensori  SET etichetta=?, marca=?, tipo=?, informazioni=? WHERE id =?"); 
+			$stmt->bind_param("ssssi", $etichetta, $marca, $tipo, $informazioni, $id);
+			$stmt->execute();
+			
 		} else {
-			$query = "INSERT INTO sensori (etichetta,marca,tipo,informazioni) VALUES ('".$_POST['etichetta']."', '".$_POST['marca']."', '".$_POST['tipo']."', '".$_POST['informazioni']."')";
+			$stmt=$db->prepare("INSERT INTO sensori (etichetta,marca,tipo,informazioni) VALUES (?, ?, ?, ?)");
+			$stmt->bind_param("ssss", $etichetta, $marca, $tipo, $informazioni);
+			$stmt->execute();
 		}
-		$result = mysqli_query($db, $query);
-		//print $query;
-		//print "".mysqli_error($db); die;
+		$result = $stmt->get_result();
 		redirect('sensori');
 		break;
 	
@@ -21,8 +29,13 @@ switch ($_GET['action']) {
 		if (!is_numeric($_GET['id']))
 			redirect('sensori');
 	
-		$result = mysqli_query($db,"SELECT * FROM sensori WHERE id = ".$_GET['id']."");
-		//print_r($result); 
+		$id=$_GET['id'];
+		$stmt=$db->prepare('SELECT * FROM sensori WHERE id=?');
+		$stmt->bind_param('i', $id);
+
+		$stmt->execute();
+
+		$result = $stmt->get_result(); 
 
 		if (mysqli_num_rows($result) > 0) {
 		// output data of each row
@@ -39,26 +52,41 @@ switch ($_GET['action']) {
 	case 'delete':
 		if (!is_numeric($_GET['id']))
 			redirect('sensori');
-		$result = mysqli_query($db,"DELETE FROM sensori WHERE id=".$_GET['id']."");
+		$id=$_GET['id'];
+		$stmt=$db->prepare('DELETE FROM sensori WHERE id=?');
+		$stmt->bind_param('i', $id);
+		$stmt->execute();
+		$result = $stmt->get_result();
 		redirect('sensori');
 		break;
 
 	case 'misura':
 		if (!is_numeric($_GET['id']))
-			redirect('sensori');
+		redirect('sensori');
 	
+	$id=$_GET['id'];
 	$mesure= date("d/n/Y g:i ");
 	$mesure.= rand(-1, 100);
 	$mesure.="VM";
-	$query  =  "UPDATE sensori SET misurazione='".$mesure."' WHERE id = ".$_GET['id']."";
-	$result = mysqli_query($db, $query);
-		$Storicoinsert = "INSERT INTO storico(Sensoreid,Etichetta,misura) SELECT id,etichetta,misurazione FROM sensori WHERE id=".$_GET['id']."";
-		$resultstorico = mysqli_query($db, $Storicoinsert);
+	$stmt=$db->prepare("UPDATE sensori SET misurazione=? WHERE id =?");
+	$stmt->bind_param("si",$mesure,$id);
+	$stmt->execute();
+	$result = $stmt->get_result();
+			$stmt=$db->prepare("INSERT INTO storico(Sensoreid,Etichetta,misura) SELECT id,etichetta,misurazione FROM sensori WHERE id=?");
+			$stmt->bind_param('i',$id);
+			$stmt->execute();
+			$result = $stmt->get_result();
 	redirect('sensori');
 	break;
 
 	case 'storico':
-	$result = mysqli_query($db,"SELECT * FROM storico WHERE  Sensoreid = ".$_GET['id']."");
+	$id=$_GET['id'];
+		$stmt=$db->prepare("SELECT * FROM storico WHERE  Sensoreid =?");
+		$stmt->bind_param('i', $id);
+
+		$stmt->execute();
+
+		$result = $stmt->get_result(); 
 		//print_r($result); 
 		if (mysqli_num_rows($result) > 0) {
 		// output data of each row
@@ -72,9 +100,9 @@ switch ($_GET['action']) {
 
 
 	default:
-		$result = mysqli_query($db,"SELECT * FROM sensori");
-		//print_r($result); 
-
+		$stmt=$db->prepare("SELECT * FROM sensori");
+		$stmt->execute();
+		$result = $stmt->get_result();
 		if (mysqli_num_rows($result) > 0) {
 		// output data of each row
 			while($row = mysqli_fetch_assoc($result)) {
